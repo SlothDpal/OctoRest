@@ -4,6 +4,7 @@ from urllib import parse as urlparse
 from typing import Optional, Tuple
 from enum import Enum
 from time import sleep
+import urllib3
 
 import requests
 
@@ -23,12 +24,14 @@ class OctoRest:
     Encapsulates communication with one OctoPrint instance
     """
 
-    def __init__(self, *, url=None, apikey=None, session=None):
+    def __init__(self, *, url=None, apikey=None, session=None, verify=True):
         """
         Initialize the object with URL and API key
 
         If a session is provided, it will be used (mostly for testing)
         """
+        self.verify = verify
+
         if not url:
             raise TypeError('Required argument \'url\' not found or empty')
 
@@ -44,6 +47,7 @@ class OctoRest:
         
         if apikey:
             self.load_api_key(apikey)
+
 
     def load_api_key(self, apikey: str) -> None:
         """Use the given API key for all future communication with the OctoPrint server.
@@ -73,7 +77,8 @@ class OctoRest:
         Returns JSON decoded data
         """
         url = urlparse.urljoin(self.url, path)
-        response = self.session.get(url, params=params)
+        if not self.verify : urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        response = self.session.get(url, params=params, verify=self.verify)
         self._check_response(response)
 
         return response.json()
@@ -90,7 +95,8 @@ class OctoRest:
         Returns JSON decoded data
         """
         url = urlparse.urljoin(self.url, path)
-        response = self.session.post(url, data=data, files=files, json=json)
+        if not self.verify : urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        response = self.session.post(url, data=data, files=files, json=json, verify=self.verify)
         self._check_response(response)
 
         if ret:
