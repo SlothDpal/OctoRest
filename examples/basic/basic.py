@@ -8,6 +8,14 @@ def make_client():
     except Exception as e:
         print(e)
 
+def make_client_https():
+    try:
+        # make Octopi connection via HTTPS with no verify certificate (i.e. selfsigned)
+        client = OctoRest(url="https://octopi.local", apikey="YouShallNotPass", verify=False)
+        return client
+    except Exception as e:
+        print(e)
+
 def get_version():
     client = make_client()
     message = "You are using OctoPrint v" + client.version['server'] + "\n"
